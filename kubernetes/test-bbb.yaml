@@ -1,0 +1,9 @@
+apiVersion: b3scale.infra.run/v1
+kind: BBBFrontend
+metadata:
+  name: testeroni
+  namespace: b3scale-testing
+spec:
+  settings:
+    required_tags:
+      - "bbb_24_mediasoup"

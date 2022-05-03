@@ -1,0 +1,8 @@
+
+b3Scale:
+  host: "https://bbb.bastelgenosse.de"
+  accessToken: ""
+
+kubernetes:
+  outOfCluster:
+    fileName: "./kubeconfig"
