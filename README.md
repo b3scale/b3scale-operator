@@ -4,7 +4,8 @@
 
 1. Deploy CRD
     + `kubectl apply -f kubernetes/crd.yaml`
-2. Deploy Operator
+2. Configure Operator by modifing the Secret in `kubernetses/operator.yaml`
+3. Deploy Operator
     + `kubectl apply -f kubernetes/operator.yaml`
 
 ## Usage
