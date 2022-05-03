@@ -2,7 +2,7 @@ apiVersion: b3scale.infra.run/v1
 kind: BBBFrontend
 metadata:
   name: testeroni
-  namespace: b3scale-testing
+  namespace: b3scale-operator
 spec:
   settings:
     required_tags:
