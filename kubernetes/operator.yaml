@@ -58,4 +58,4 @@ spec:
       serviceAccountName: b3scale-operator
       containers:
         - name: b3scale-operator
-          image: ""
+          image: "harbor.infra.run/infra.run/b3scale-operator:latest"
