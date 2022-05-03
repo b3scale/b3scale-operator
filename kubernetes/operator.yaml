@@ -59,3 +59,26 @@ spec:
       containers:
         - name: b3scale-operator
           image: "harbor.infra.run/infra.run/b3scale-operator:latest"
+          volumeMounts:
+            - mountPath: "/app/b3scale-operator-config.yaml"
+              name: b3scale-operator-config
+      volumes:
+        - name: b3scale-operator-config
+          secret:
+            secretName: b3scale-operator-config
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b3scale-operator-config
+type: Opaque
+stringData:
+  b3scale-operator-config.yaml: |
+    b3Scale:
+      host: "https://bbb.bastelgenosse.de"
+      accessToken: ""
+    
+    kubernetes:
+      inCluster: {}
