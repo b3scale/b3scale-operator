@@ -96,7 +96,7 @@ func (o *B3ScaleOperator) Run() error {
 func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res skop.Resource) error {
 
 	bbbFrontend := res.(*v1.BBBFrontend)
-	uniqName := fmt.Sprintf("b3scale-operator-%v", bbbFrontend.Name)
+	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.Namespace, bbbFrontend.Name)
 
 	configMap, err := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
 
