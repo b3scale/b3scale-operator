@@ -26,5 +26,15 @@ spec:
                   properties:
                     required_tags:
                       type: array
+                      nullable: true
                       items:
                         type: string
+                    default_presentation:
+                      type: object
+                      nullable: true
+                      properties:
+                        url:
+                          type: string
+                        force:
+                          type: boolean
+
