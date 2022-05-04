@@ -42,8 +42,9 @@ func NewB3ScaleOperator(config *config2.Config) (*B3ScaleOperator, error) {
 		return nil, err
 	}
 
+	apiUrl := fmt.Sprintf("https://%v", config.B3Scale.Host)
 	apiClient := b3scalehttpv1.NewJWTClient(
-		config.B3Scale.Host,
+		apiUrl,
 		config.B3Scale.AccessToken,
 	)
 
@@ -142,8 +143,8 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 				},
 			},
 			Data: map[string]string{
-				"FRONTEND_HOST": o.config.B3Scale.Host,
-				"FRONTEND_ID":   createdFrontend.ID,
+				"FRONTEND_ENDPOINT": fmt.Sprintf("https://%v/bbb/%v", o.config.B3Scale.Host, createdFrontend.Frontend.Key),
+				"FRONTEND_ID":       createdFrontend.ID,
 			},
 		}
 
@@ -167,7 +168,6 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 				},
 			},
 			StringData: map[string]string{
-				"FRONTEND_KEY":    createdFrontend.Frontend.Key,
 				"FRONTEND_SECRET": createdFrontend.Frontend.Secret,
 			},
 		}

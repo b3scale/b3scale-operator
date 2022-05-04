@@ -84,7 +84,7 @@ type: Opaque
 stringData:
   b3scale-operator-config.yaml: |
     b3Scale:
-      host: "https://bbb.bastelgenosse.de"
+      host: "bbb.bastelgenosse.de"
       accessToken: ""
     
     kubernetes:
