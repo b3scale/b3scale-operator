@@ -2,6 +2,7 @@ package v1
 
 import (
 	"gitlab.com/infra.run/public/b3scale/pkg/store"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -15,15 +16,26 @@ type FrontendSettings struct {
 	DefaultPresentation *DefaultPresentationSettings `json:"default_presentation"`
 }
 
+type Credentials struct {
+	Key       string               `json:"key"`
+	SecretRef v1.SecretKeySelector `json:"secret"`
+}
+
 type BBBFrontend struct {
 	metav1.ObjectMeta `json:"metadata"`
-	Kind              string           `json:"kind"`
-	APIVersion        string           `json:"apiVersion"`
-	Spec              BBBFrontendSpecs `json:"spec"`
+	Kind              string            `json:"kind"`
+	APIVersion        string            `json:"apiVersion"`
+	Spec              BBBFrontendSpecs  `json:"spec"`
+	Status            BBBFrontendStatus `json:"status"`
+}
+
+type BBBFrontendStatus struct {
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 type BBBFrontendSpecs struct {
-	Settings FrontendSettings `json:"settings"`
+	Settings    FrontendSettings `json:"settings"`
+	Credentials *Credentials     `json:"credentials"`
 }
 
 func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {

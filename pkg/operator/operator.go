@@ -94,26 +94,108 @@ func (o *B3ScaleOperator) Run() error {
 }
 
 func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res skop.Resource) error {
-
+	operatorKubernetesClient := NewOperatorKubernetesClient(op.Clientset())
 	bbbFrontend := res.(*v1.BBBFrontend)
-	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.Namespace, bbbFrontend.Name)
 
-	configMap, err := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	reconcileError := o.innerReconcile(ctx, op, bbbFrontend)
 
-	if err != nil && !kubernetesErrors.IsNotFound(err) {
+	if reconcileError != nil {
+		// This should be the latest version of this resource anyways.
+		// We always pass a reference to anywhere.
+		err := operatorKubernetesClient.SetReadyStatusCondition(ctx, bbbFrontend, false, reconcileError)
+		if err != nil {
+			return err
+		} else {
+			return reconcileError
+		}
+	} else {
+		err := operatorKubernetesClient.SetReadyStatusCondition(ctx, bbbFrontend, true, nil)
 		return err
 	}
 
-	if err != nil {
-		// Create ConfigMap and Secrets and so on and create resource in B3Scale backend
+}
 
-		secret := util.GenerateSecureToken(21)
+func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator, bbbFrontend *v1.BBBFrontend) error {
+
+	operatorKubernetesClient := NewOperatorKubernetesClient(op.Clientset())
+
+	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.Namespace, bbbFrontend.Name)
+
+	configMap, configMapError := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	if configMapError != nil && !kubernetesErrors.IsNotFound(configMapError) {
+		return configMapError
+	}
+
+	secret, secretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	if secretError != nil && !kubernetesErrors.IsNotFound(secretError) {
+		return secretError
+	}
+
+	var userConfiguredSecret *corev1.Secret
+	if bbbFrontend.Spec.Credentials != nil {
+		uSecret, userSecretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+		if userSecretError != nil && !kubernetesErrors.IsNotFound(userSecretError) {
+			return userSecretError
+		}
+
+		userConfiguredSecret = uSecret
+	}
+
+	var frontendSecret string
+
+	// Prepopulating Secret, if we do not have one and there is no other secret configured.
+	if secretError != nil && userConfiguredSecret == nil {
+		generatedSecret := util.GenerateSecureToken(21)
+
+		newSecret := corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      uniqName,
+				Namespace: bbbFrontend.ObjectMeta.Namespace,
+				OwnerReferences: []metav1.OwnerReference{
+					{
+						Kind:       bbbFrontend.Kind,
+						APIVersion: bbbFrontend.APIVersion,
+						Name:       bbbFrontend.ObjectMeta.Name,
+						UID:        bbbFrontend.ObjectMeta.UID,
+						Controller: skop.Bool(true),
+					},
+				},
+			},
+			StringData: map[string]string{
+				"FRONTEND_SECRET": generatedSecret,
+			},
+		}
+
+		err := reconcile2.Secret(ctx, o.op.Clientset(), &newSecret)
+		if err != nil {
+			return err
+		}
+
+		frontendSecret = generatedSecret
+
+	} else if userConfiguredSecret != nil {
+		t, ok := userConfiguredSecret.StringData[bbbFrontend.Spec.Credentials.SecretRef.Key]
+		if !ok {
+			return errors.New("invalid secret or wrong key given, did not find existing secret")
+		}
+
+		if len(t) < 32 {
+			return errors.New("secret is too short, cannot be used`")
+		}
+
+		frontendSecret = t
+	} else {
+		frontendSecret = secret.StringData["FRONTEND_SECRET"]
+	}
+
+	if configMapError != nil {
+		// Create ConfigMap and Secrets and so on and create resource in B3Scale backend
 
 		createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
 			Active: true,
 			Frontend: &bbb.Frontend{
 				Key:    uniqName,
-				Secret: secret,
+				Secret: frontendSecret,
 			},
 			Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
 		})
@@ -122,8 +204,7 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 			return err
 		}
 
-		bbbFrontend.SetFinalizers([]string{FINALIZER_URL})
-		err = updateBBBFrontend(ctx, o.op.Clientset(), bbbFrontend)
+		err = operatorKubernetesClient.AddFinalizer(ctx, bbbFrontend, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
@@ -153,30 +234,6 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 			return err
 		}
 
-		newSecret := corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      uniqName,
-				Namespace: bbbFrontend.ObjectMeta.Namespace,
-				OwnerReferences: []metav1.OwnerReference{
-					{
-						Kind:       bbbFrontend.Kind,
-						APIVersion: bbbFrontend.APIVersion,
-						Name:       bbbFrontend.ObjectMeta.Name,
-						UID:        bbbFrontend.ObjectMeta.UID,
-						Controller: skop.Bool(true),
-					},
-				},
-			},
-			StringData: map[string]string{
-				"FRONTEND_SECRET": createdFrontend.Frontend.Secret,
-			},
-		}
-
-		err = reconcile2.Secret(ctx, o.op.Clientset(), &newSecret)
-		if err != nil {
-			return err
-		}
-
 	} else if bbbFrontend.DeletionTimestamp != nil {
 		// Deletion
 
@@ -197,18 +254,7 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 			return err
 		}
 
-		// Remove Finalizer, so Kubernetes can safely remove this object.
-
-		// We want to remove our finalizer, but keep the other finalizers.
-		finalizers := []string{}
-		for _, finalizer := range bbbFrontend.Finalizers {
-			if finalizer != FINALIZER_URL {
-				finalizers = append(finalizers, finalizer)
-			}
-		}
-
-		bbbFrontend.SetFinalizers(finalizers)
-		err = updateBBBFrontend(ctx, o.op.Clientset(), bbbFrontend)
+		err = operatorKubernetesClient.RemoveFinalizer(ctx, bbbFrontend, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
