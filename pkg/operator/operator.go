@@ -99,6 +99,11 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 
 	reconcileError := o.innerReconcile(ctx, op, bbbFrontend)
 
+	if bbbFrontend.DeletionTimestamp != nil {
+		// We do not update the status, if we are currently processing a deletion
+		return reconcileError
+	}
+
 	if reconcileError != nil {
 		// This should be the latest version of this resource anyways.
 		// We always pass a reference to anywhere.
@@ -126,6 +131,34 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		return configMapError
 	}
 
+	if bbbFrontend.DeletionTimestamp != nil {
+		// Deletion
+
+		frontendId, ok := configMap.Data["FRONTEND_ID"]
+		if !ok {
+			return errors.New("Invalid configMap, FRONTEND_ID not found")
+		}
+
+		existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
+
+		if err != nil {
+			return err
+		}
+
+		_, err = o.apiClient.FrontendDelete(ctx, existingFrontend)
+
+		if err != nil {
+			return err
+		}
+
+		err = operatorKubernetesClient.RemoveFinalizer(ctx, bbbFrontend, FINALIZER_URL)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	secret, secretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
 	if secretError != nil && !kubernetesErrors.IsNotFound(secretError) {
 		return secretError
@@ -133,8 +166,8 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 
 	var userConfiguredSecret *corev1.Secret
 	if bbbFrontend.Spec.Credentials != nil {
-		uSecret, userSecretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
-		if userSecretError != nil && !kubernetesErrors.IsNotFound(userSecretError) {
+		uSecret, userSecretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, bbbFrontend.Spec.Credentials.SecretRef.Name, metav1.GetOptions{})
+		if userSecretError != nil {
 			return userSecretError
 		}
 
@@ -174,18 +207,27 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		frontendSecret = generatedSecret
 
 	} else if userConfiguredSecret != nil {
-		t, ok := userConfiguredSecret.StringData[bbbFrontend.Spec.Credentials.SecretRef.Key]
+		t, ok := userConfiguredSecret.Data[bbbFrontend.Spec.Credentials.SecretRef.Key]
 		if !ok {
 			return errors.New("invalid secret or wrong key given, did not find existing secret")
 		}
 
-		if len(t) < 32 {
+		tStr := string(t)
+
+		if len(tStr) < 32 {
 			return errors.New("secret is too short, cannot be used`")
 		}
 
-		frontendSecret = t
+		frontendSecret = tStr
 	} else {
-		frontendSecret = secret.StringData["FRONTEND_SECRET"]
+		frontendSecret = string(secret.Data["FRONTEND_SECRET"])
+	}
+
+	var frontendKey string
+	if bbbFrontend.Spec.Credentials != nil {
+		frontendKey = bbbFrontend.Spec.Credentials.Key
+	} else {
+		frontendKey = uniqName
 	}
 
 	if configMapError != nil {
@@ -194,7 +236,7 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
 			Active: true,
 			Frontend: &bbb.Frontend{
-				Key:    uniqName,
+				Key:    frontendKey,
 				Secret: frontendSecret,
 			},
 			Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
@@ -234,31 +276,6 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
-	} else if bbbFrontend.DeletionTimestamp != nil {
-		// Deletion
-
-		frontendId, ok := configMap.Data["FRONTEND_ID"]
-		if !ok {
-			return errors.New("Invalid configMap, FRONTEND_ID not found")
-		}
-
-		existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
-
-		if err != nil {
-			return err
-		}
-
-		_, err = o.apiClient.FrontendDelete(ctx, existingFrontend)
-
-		if err != nil {
-			return err
-		}
-
-		err = operatorKubernetesClient.RemoveFinalizer(ctx, bbbFrontend, FINALIZER_URL)
-		if err != nil {
-			return err
-		}
-
 	} else {
 		// Existing configMap and Secret, reusing it.
 		frontendId, ok := configMap.Data["FRONTEND_ID"]
@@ -272,6 +289,8 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
+		existingFrontend.Frontend.Key = frontendKey
+		existingFrontend.Frontend.Secret = frontendSecret
 		existingFrontend.Settings = bbbFrontend.Spec.Settings.ToAPIFrontendSettings()
 		_, err = o.apiClient.FrontendUpdate(ctx, existingFrontend)
 

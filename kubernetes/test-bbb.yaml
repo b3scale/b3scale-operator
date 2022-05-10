@@ -1,9 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: testeroni
+  namespace: b3scale-operator
+stringData:
+  FOO: "UuBie5boohua0xeewei4lei0eu9shahC"
+
+---
+
+
 apiVersion: b3scale.infra.run/v1
 kind: BBBFrontend
 metadata:
   name: testeroni
   namespace: b3scale-operator
 spec:
+  credentials:
+    key: "das-ist-ein-key"
+    secretRef:
+      name: testeroni
+      key: "FOO"
   settings:
     required_tags:
       - "bbb_24_mediasoup"

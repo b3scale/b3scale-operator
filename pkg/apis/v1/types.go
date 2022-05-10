@@ -18,7 +18,7 @@ type FrontendSettings struct {
 
 type Credentials struct {
 	Key       string               `json:"key"`
-	SecretRef v1.SecretKeySelector `json:"secret"`
+	SecretRef v1.SecretKeySelector `json:"secretRef"`
 }
 
 type BBBFrontend struct {
