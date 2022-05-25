@@ -25,7 +25,7 @@ import (
 	"syscall"
 )
 
-var FINALIZER_URL = "b3scale.infra.run"
+var FINALIZER_URL = "b3scale.infra.run/finalizer"
 
 type B3ScaleOperator struct {
 	logger    log.Logger
@@ -134,24 +134,39 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 	if bbbFrontend.DeletionTimestamp != nil {
 		// Deletion
 
-		frontendId, ok := configMap.Data["FRONTEND_ID"]
-		if !ok {
-			return errors.New("Invalid configMap, FRONTEND_ID not found")
+		// Check, if we need to remove the finalizers.
+
+		var existingFrontend *store.FrontendState
+		// If the configMap is already deleted, everything is fine or we screwed something up.
+		if configMap != nil {
+			frontendId, ok := configMap.Data["FRONTEND_ID"]
+			if !ok {
+				return errors.New("Invalid configMap, FRONTEND_ID not found")
+			}
+
+			x, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
+			existingFrontend = x
+
+			if err != nil {
+				return err
+			}
 		}
 
-		existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
+		if existingFrontend != nil {
+			_, err := o.apiClient.FrontendDelete(ctx, existingFrontend)
 
+			if err != nil {
+				return err
+			}
+
+		}
+
+		err := operatorKubernetesClient.RemoveFinalizerFromConfigMap(ctx, configMap, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
 
-		_, err = o.apiClient.FrontendDelete(ctx, existingFrontend)
-
-		if err != nil {
-			return err
-		}
-
-		err = operatorKubernetesClient.RemoveFinalizer(ctx, bbbFrontend, FINALIZER_URL)
+		err = operatorKubernetesClient.RemoveFinalizerFromBBBFrontend(ctx, bbbFrontend, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
@@ -246,7 +261,7 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
-		err = operatorKubernetesClient.AddFinalizer(ctx, bbbFrontend, FINALIZER_URL)
+		err = operatorKubernetesClient.AddFinalizerToBBBFrontend(ctx, bbbFrontend, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
@@ -255,6 +270,9 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      uniqName,
 				Namespace: bbbFrontend.ObjectMeta.Namespace,
+				Finalizers: []string{
+					FINALIZER_URL,
+				},
 				OwnerReferences: []metav1.OwnerReference{
 					{
 						Kind:       bbbFrontend.Kind,

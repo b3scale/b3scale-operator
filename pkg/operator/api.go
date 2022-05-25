@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	v1 "gitlab.com/infra.run/public/b3scale-operator/pkg/apis/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
@@ -49,7 +50,7 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontend(ctx context.Context, bbb *v
 	return nil
 }
 
-func (o *OperatorKubernetesClient) AddFinalizer(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
+func (o *OperatorKubernetesClient) AddFinalizerToBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
 	var finalizers []string
 	copy(finalizers, bbb.Finalizers)
 	finalizers = append(finalizers, finalizer)
@@ -57,7 +58,7 @@ func (o *OperatorKubernetesClient) AddFinalizer(ctx context.Context, bbb *v1.BBB
 	return o.UpdateBBBFrontend(ctx, bbb)
 }
 
-func (o *OperatorKubernetesClient) RemoveFinalizer(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
+func (o *OperatorKubernetesClient) RemoveFinalizerFromBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
 	// We want to remove our finalizer, but keep the other finalizers.
 	finalizers := []string{}
 	for _, f := range bbb.Finalizers {
@@ -68,6 +69,21 @@ func (o *OperatorKubernetesClient) RemoveFinalizer(ctx context.Context, bbb *v1.
 
 	bbb.SetFinalizers(finalizers)
 	return o.UpdateBBBFrontend(ctx, bbb)
+}
+
+func (o *OperatorKubernetesClient) RemoveFinalizerFromConfigMap(ctx context.Context, configMap *corev1.ConfigMap, finalizer string) error {
+	// We want to remove our finalizer, but keep the other finalizers.
+	finalizers := []string{}
+	for _, f := range configMap.Finalizers {
+		if f != finalizer {
+			finalizers = append(finalizers, f)
+		}
+	}
+
+	configMap.SetFinalizers(finalizers)
+
+	_, err := o.clientset.CoreV1().ConfigMaps(configMap.Namespace).Update(ctx, configMap, metav1.UpdateOptions{})
+	return err
 }
 
 func (o *OperatorKubernetesClient) SetReadyStatusCondition(ctx context.Context, bbb *v1.BBBFrontend, isReady bool, err error) error {
