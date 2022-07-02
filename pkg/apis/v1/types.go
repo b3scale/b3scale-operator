@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"gitlab.com/infra.run/public/b3scale/pkg/store"
+	"github.com/b3scale/b3scale/pkg/store"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

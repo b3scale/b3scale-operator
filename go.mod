@@ -1,4 +1,4 @@
-module gitlab.com/infra.run/public/b3scale-operator
+module github.com/b3scale/b3scale-operator
 
 go 1.18
 
@@ -6,7 +6,7 @@ require (
 	github.com/go-kit/kit v0.10.0
 	github.com/spf13/viper v1.11.0
 	github.com/thcyron/skop/v2 v2.0.1
-	gitlab.com/infra.run/public/b3scale v0.0.0-20220228123116-61cf9d386ed6
+	github.com/b3scale/b3scale v0.0.0-20220628174610-7877bcc61269
 	k8s.io/api v0.23.6
 	k8s.io/apimachinery v0.23.6
 	k8s.io/client-go v0.23.6

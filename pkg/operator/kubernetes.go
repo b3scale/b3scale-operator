@@ -2,7 +2,7 @@ package operator
 
 import (
 	"errors"
-	config2 "gitlab.com/infra.run/public/b3scale-operator/pkg/config"
+	config2 "github.com/b3scale/b3scale-operator/pkg/config"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
