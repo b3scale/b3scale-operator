@@ -65,6 +65,18 @@ spec:
                           type: string
                         force:
                           type: boolean
+                    create_default_params:
+                      type: object
+                      nullable: true
+                      description: See https://github.com/b3scale/b3scale#configure-create-parameter-defaults-and-overrides
+                      additionalProperties:
+                        type: string
+                    create_override_params:
+                      type: object
+                      nullable: true
+                      description: See https://github.com/b3scale/b3scale#configure-create-parameter-defaults-and-overrides
+                      additionalProperties:
+                        type: string
             status:
               description: Status of the BBBFrontend. This is set and managed automatically.
               type: object

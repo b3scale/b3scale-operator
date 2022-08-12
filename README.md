@@ -23,6 +23,11 @@ spec:
       force: true
     required_tags:
       - "bbb_24_mediasoup"
+    create_override_params:
+       allowStartStopRecording: "false"
+    create_default_params:
+       allowStartStopRecording: "false"
+       disabledFeatures: "chat,captions"
 ```
 
 This will create a frontend instance with the name `b3scale-operator-testeroni`. This will also create a ConfigMap and a Secret with the same name containing the needed configuration options to use this in other deployments.

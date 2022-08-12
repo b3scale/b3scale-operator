@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/b3scale/b3scale/pkg/bbb"
 	"github.com/b3scale/b3scale/pkg/store"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,6 +15,9 @@ type DefaultPresentationSettings struct {
 type FrontendSettings struct {
 	RequiredTags        []string                     `json:"required_tags"`
 	DefaultPresentation *DefaultPresentationSettings `json:"default_presentation"`
+
+	CreateDefaultParams  *bbb.Params `json:"create_default_params"`
+	CreateOverrideParams *bbb.Params `json:"create_override_params"`
 }
 
 type Credentials struct {
@@ -53,9 +57,22 @@ func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {
 		requiredTags = f.RequiredTags
 	}
 
+	createDefaultParams := make(bbb.Params)
+	if f.CreateDefaultParams != nil {
+		createDefaultParams = *f.CreateDefaultParams
+	}
+
+	createOverrideParams := make(bbb.Params)
+	if f.CreateOverrideParams != nil {
+		createOverrideParams = *f.CreateOverrideParams
+	}
+
 	s := store.FrontendSettings{
 		RequiredTags:        requiredTags,
 		DefaultPresentation: defaultPresentation,
+
+		CreateDefaultParams:  createDefaultParams,
+		CreateOverrideParams: createOverrideParams,
 	}
 
 	return s

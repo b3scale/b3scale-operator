@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/spf13/viper"
 	config2 "github.com/b3scale/b3scale-operator/pkg/config"
 	operator2 "github.com/b3scale/b3scale-operator/pkg/operator"
+	"github.com/spf13/viper"
 )
 
 func startUpOperator() error {
