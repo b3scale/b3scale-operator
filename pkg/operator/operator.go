@@ -2,19 +2,20 @@ package operator
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	v1 "git.infra.run/infra.run/tools/b3scale-operator/pkg/apis/v1"
+	config2 "git.infra.run/infra.run/tools/b3scale-operator/pkg/config"
+	reconcile2 "git.infra.run/infra.run/tools/b3scale-operator/pkg/reconcile"
+	"git.infra.run/infra.run/tools/b3scale-operator/pkg/util"
+	"github.com/b3scale/b3scale/pkg/bbb"
+	b3scalehttpv1 "github.com/b3scale/b3scale/pkg/http/api/v1"
+	"github.com/b3scale/b3scale/pkg/store"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/thcyron/skop/v2/reconcile"
 	"github.com/thcyron/skop/v2/skop"
-	v1 "gitlab.com/infra.run/public/b3scale-operator/pkg/apis/v1"
-	config2 "gitlab.com/infra.run/public/b3scale-operator/pkg/config"
-	reconcile2 "gitlab.com/infra.run/public/b3scale-operator/pkg/reconcile"
-	"gitlab.com/infra.run/public/b3scale-operator/pkg/util"
-	"gitlab.com/infra.run/public/b3scale/pkg/bbb"
-	b3scalehttpv1 "gitlab.com/infra.run/public/b3scale/pkg/http/api/v1"
-	"gitlab.com/infra.run/public/b3scale/pkg/store"
 	corev1 "k8s.io/api/core/v1"
 	kubernetesErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -105,7 +106,7 @@ func (o *B3ScaleOperator) Reconcile(ctx context.Context, op *skop.Operator, res 
 	}
 
 	if reconcileError != nil {
-		// This should be the latest version of this resource anyways.
+		// This should be the latest version of this resource anyway.
 		// We always pass a reference to anywhere.
 		err := operatorKubernetesClient.SetReadyStatusCondition(ctx, bbbFrontend, false, reconcileError)
 		if err != nil {
@@ -124,12 +125,14 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 
 	operatorKubernetesClient := NewOperatorKubernetesClient(op.Clientset())
 
-	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.Namespace, bbbFrontend.Name)
+	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.ObjectMeta.Namespace, bbbFrontend.ObjectMeta.Name)
 
-	configMap, configMapError := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	cM, configMapError := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.ObjectMeta.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
 	if configMapError != nil && !kubernetesErrors.IsNotFound(configMapError) {
 		return configMapError
 	}
+
+	configMap := cM.DeepCopy()
 
 	if bbbFrontend.DeletionTimestamp != nil {
 		// Deletion
@@ -174,14 +177,14 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		return nil
 	}
 
-	secret, secretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	secret, secretError := op.Clientset().CoreV1().Secrets(bbbFrontend.ObjectMeta.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
 	if secretError != nil && !kubernetesErrors.IsNotFound(secretError) {
 		return secretError
 	}
 
 	var userConfiguredSecret *corev1.Secret
 	if bbbFrontend.Spec.Credentials != nil {
-		uSecret, userSecretError := op.Clientset().CoreV1().Secrets(bbbFrontend.Namespace).Get(ctx, bbbFrontend.Spec.Credentials.SecretRef.Name, metav1.GetOptions{})
+		uSecret, userSecretError := op.Clientset().CoreV1().Secrets(bbbFrontend.ObjectMeta.Namespace).Get(ctx, bbbFrontend.Spec.Credentials.SecretRef.Name, metav1.GetOptions{})
 		if userSecretError != nil {
 			return userSecretError
 		}
@@ -307,10 +310,13 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
-		existingFrontend.Frontend.Key = frontendKey
-		existingFrontend.Frontend.Secret = frontendSecret
-		existingFrontend.Settings = bbbFrontend.Spec.Settings.ToAPIFrontendSettings()
-		_, err = o.apiClient.FrontendUpdate(ctx, existingFrontend)
+		payload, err := json.Marshal(
+			map[string]v1.FrontendSettings{
+				"settings": bbbFrontend.Spec.Settings,
+			},
+		)
+
+		_, err = o.apiClient.FrontendUpdateRaw(ctx, existingFrontend.ID, payload)
 
 		if err != nil {
 			return err

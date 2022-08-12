@@ -1,9 +1,9 @@
 package main
 
 import (
+	config2 "git.infra.run/infra.run/tools/b3scale-operator/pkg/config"
+	operator2 "git.infra.run/infra.run/tools/b3scale-operator/pkg/operator"
 	"github.com/spf13/viper"
-	config2 "gitlab.com/infra.run/public/b3scale-operator/pkg/config"
-	operator2 "gitlab.com/infra.run/public/b3scale-operator/pkg/operator"
 )
 
 func startUpOperator() error {

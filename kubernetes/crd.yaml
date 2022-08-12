@@ -51,7 +51,7 @@ spec:
                   type: object
                   properties:
                     required_tags:
-                      description: See https://gitlab.com/infra.run/public/b3scale#middleware-configuration
+                      description: See https://github.com/b3scale/b3scale#middleware-configuration
                       type: array
                       nullable: true
                       items:
@@ -59,12 +59,24 @@ spec:
                     default_presentation:
                       type: object
                       nullable: true
-                      description: See https://gitlab.com/infra.run/public/b3scale#middleware-configuration
+                      description: See https://github.com/b3scale/b3scale#middleware-configuration
                       properties:
                         url:
                           type: string
                         force:
                           type: boolean
+                    create_default_params:
+                      type: object
+                      nullable: true
+                      description: See https://github.com/b3scale/b3scale#configure-create-parameter-defaults-and-overrides
+                      additionalProperties:
+                        type: string
+                    create_override_params:
+                      type: object
+                      nullable: true
+                      description: See https://github.com/b3scale/b3scale#configure-create-parameter-defaults-and-overrides
+                      additionalProperties:
+                        type: string
             status:
               description: Status of the BBBFrontend. This is set and managed automatically.
               type: object

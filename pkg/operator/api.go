@@ -3,7 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
-	v1 "gitlab.com/infra.run/public/b3scale-operator/pkg/apis/v1"
+	v1 "git.infra.run/infra.run/tools/b3scale-operator/pkg/apis/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
@@ -104,6 +104,14 @@ func (o *OperatorKubernetesClient) SetReadyStatusCondition(ctx context.Context, 
 
 	metaNow := metav1.NewTime(time.Now())
 
+	var existingReadyCondition *metav1.Condition
+	for _, c := range bbb.Status.Conditions {
+		con := c
+		if c.Type == "Ready" {
+			existingReadyCondition = &con
+		}
+	}
+
 	condition := metav1.Condition{
 		Type:               "Ready",
 		Status:             status,
@@ -111,6 +119,16 @@ func (o *OperatorKubernetesClient) SetReadyStatusCondition(ctx context.Context, 
 		LastTransitionTime: metaNow,
 		Reason:             reason,
 		Message:            message,
+	}
+
+	if existingReadyCondition != nil &&
+		existingReadyCondition.Status == condition.Status &&
+		existingReadyCondition.ObservedGeneration == condition.ObservedGeneration &&
+		existingReadyCondition.Reason == condition.Reason &&
+		existingReadyCondition.Message == condition.Message {
+
+		// Skip the update, we do not need it.
+		return nil
 	}
 
 	var conditions []metav1.Condition
@@ -123,5 +141,6 @@ func (o *OperatorKubernetesClient) SetReadyStatusCondition(ctx context.Context, 
 
 	conditions = append(conditions, condition)
 	bbb.Status.Conditions = conditions
+
 	return o.UpdateBBBFrontendStatus(ctx, bbb)
 }
