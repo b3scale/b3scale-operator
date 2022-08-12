@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o b3scale-operator
 
-FROM harbor.infra.run/infra.run/alpine:3.15.4 as certs
+FROM alpine:3.15 as certs
 
 RUN apk add ca-certificates && update-ca-certificates
 
