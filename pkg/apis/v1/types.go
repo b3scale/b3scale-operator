@@ -58,12 +58,12 @@ func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {
 	}
 
 	createDefaultParams := make(bbb.Params)
-	if f.CreateDefaultParams != nil {
+	if f.CreateDefaultParams != nil && len(*f.CreateDefaultParams) > 0 {
 		createDefaultParams = *f.CreateDefaultParams
 	}
 
 	createOverrideParams := make(bbb.Params)
-	if f.CreateOverrideParams != nil {
+	if f.CreateOverrideParams != nil && len(*f.CreateOverrideParams) > 0 {
 		createOverrideParams = *f.CreateOverrideParams
 	}
 

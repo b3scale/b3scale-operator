@@ -251,6 +251,7 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 	if configMapError != nil {
 		// Create ConfigMap and Secrets and so on and create resource in B3Scale backend
 
+		// FIXME: Use FrontendCreateRaw to be sane with the update functionality. Technically this has different behaviour.
 		createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
 			Active: true,
 			Frontend: &bbb.Frontend{
@@ -310,9 +311,11 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
+		cleanedSettings := util.GetCleanedFrontendSettings(&bbbFrontend.Spec.Settings)
+
 		payload, err := json.Marshal(
 			map[string]v1.FrontendSettings{
-				"settings": bbbFrontend.Spec.Settings,
+				"settings": cleanedSettings,
 			},
 		)
 
