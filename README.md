@@ -14,8 +14,7 @@
 apiVersion: b3scale.infra.run/v1
 kind: BBBFrontend
 metadata:
-  name: testeroni
-  namespace: b3scale-testing
+  name: frontend-full-settings
 spec:
   settings:
     default_presentation:
@@ -38,3 +37,19 @@ This will create a frontend instance with the name `b3scale-operator-testeroni`.
 | ConfigMap | FRONTEND_HOST   | This contains the b3scale host, that hosts the BBB Frontend                                               |
 | Secret    | FRONTEND_KEY    | This contains the frontend key.                                                                           |
 | Secret    | FRONTEND_SECRET | This contains the frontend secret.                                                                        |
+
+There is also the possibility to add a secret with credentials to the `BBBFrontend` resource. An full example is included in the `./kubernetes/test-bbb.yaml` file.
+
+```yaml
+apiVersion: b3scale.infra.run/v1
+kind: BBBFrontend
+metadata:
+  name: frontend-provided-credentials
+spec:
+  credentials:
+    key: frontend-provided-credentials-api-key
+    secretRef:
+      name: frontend-provided-credentials-secret
+      key: "FRONTEND_API_SECRET"
+  settings: {}
+```

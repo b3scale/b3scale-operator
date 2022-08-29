@@ -13,7 +13,7 @@ metadata:
   namespace: b3scale-operator
 rules:
   - apiGroups: [ "b3scale.infra.run" ]
-    resources: [ "bbbfrontends" ]
+    resources: [ "bbbfrontends", "bbbfrontends/status" ]
     verbs: [ "get", "watch", "list", "update" ]
   - apiGroups: [ "" ]
     resources: [ "configmaps" ]
