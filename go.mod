@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/b3scale/b3scale v0.0.0-20220928165050-72a0d45dd1d8
-	github.com/go-kit/kit v0.12.0
+	github.com/go-kit/kit v0.13.0
 	github.com/spf13/viper v1.13.0
 	github.com/thcyron/skop/v2 v2.1.0
 	k8s.io/api v0.28.4
