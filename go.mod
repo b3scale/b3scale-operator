@@ -1,6 +1,8 @@
 module github.com/b3scale/b3scale-operator
 
-go 1.18
+go 1.21
+
+toolchain go1.21.6
 
 require (
 	github.com/b3scale/b3scale v0.0.0-20220928165050-72a0d45dd1d8
