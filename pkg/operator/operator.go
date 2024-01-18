@@ -144,6 +144,12 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		if configMap != nil {
 			frontendId, ok := configMap.Data["FRONTEND_ID"]
 			if !ok {
+				level.Debug(o.logger).Log(
+					"msg", "Could not find FRONTEND_ID in ConfigMap",
+					"configMap", configMap,
+					"cM", cM,
+					"configMapError", configMapError,
+				)
 				return errors.New("Invalid configMap, FRONTEND_ID not found")
 			}
 
