@@ -1,11 +1,12 @@
 package util
 
 import (
+	"crypto/rand"
 	"encoding/hex"
+
 	v1 "github.com/b3scale/b3scale-operator/pkg/apis/v1"
 	"github.com/b3scale/b3scale/pkg/bbb"
 )
-import "crypto/rand"
 
 func GenerateSecureToken(length int) string {
 	b := make([]byte, length)
