@@ -4,16 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	v1 "github.com/b3scale/b3scale-operator/pkg/apis/v1"
 	config2 "github.com/b3scale/b3scale-operator/pkg/config"
 	reconcile2 "github.com/b3scale/b3scale-operator/pkg/reconcile"
 	"github.com/b3scale/b3scale-operator/pkg/util"
 	"github.com/b3scale/b3scale/pkg/bbb"
-	b3scalehttpv1 "github.com/b3scale/b3scale/pkg/http/api/v1"
+	b3scaleclient "github.com/b3scale/b3scale/pkg/http/api/client"
 	"github.com/b3scale/b3scale/pkg/store"
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/thcyron/skop/v2/reconcile"
 	"github.com/thcyron/skop/v2/skop"
 	corev1 "k8s.io/api/core/v1"
@@ -21,9 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 var FINALIZER_URL = "b3scale.infra.run/finalizer"
@@ -31,7 +33,7 @@ var FINALIZER_URL = "b3scale.infra.run/finalizer"
 type B3ScaleOperator struct {
 	logger    log.Logger
 	op        *skop.Operator
-	apiClient b3scalehttpv1.Client
+	apiClient *b3scaleclient.Client
 	config    *config2.Config
 }
 
@@ -44,7 +46,7 @@ func NewB3ScaleOperator(config *config2.Config) (*B3ScaleOperator, error) {
 	}
 
 	apiUrl := fmt.Sprintf("https://%v", config.B3Scale.Host)
-	apiClient := b3scalehttpv1.NewJWTClient(
+	apiClient := b3scaleclient.New(
 		apiUrl,
 		config.B3Scale.AccessToken,
 	)
