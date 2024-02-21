@@ -22,5 +22,5 @@ jobs:
 
     - name: Delete container image
       run: |
-        docker image rm -f ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:pr-${{ github.event.pull_request.number }}
+        docker image rm -f ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.pull_request.number }}
 

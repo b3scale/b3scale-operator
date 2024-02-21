@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-pr-${{ github.event.number }}
 
     steps:
     - name: Checkout repository
@@ -21,18 +21,18 @@ jobs:
 
     - name: Delete existing Container image if it exists
       run: |
-        docker image rm -f ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest || true
+        docker image rm -f ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.number }} || true
 
     - name: Build Container image
-      run: docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest .
+      run: docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.number }} .
 
     - name: Push Container image to GHCR
       run: |
-        docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest
+        docker push ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.number }}
 
     - name: Get Container image ID
       id: inspect_image
-      run: echo image_id=$(docker inspect --format='{{.ID}}' ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest) >> $GITHUB_OUTPUT
+      run: echo image_id=$(docker inspect --format='{{.ID}}' ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.number }}) >> $GITHUB_OUTPUT
 
     - name: Comment on pull request with Container image information
       uses: actions/github-script@v4
@@ -42,8 +42,8 @@ jobs:
           const imageId = '${{ steps.inspect_image.outputs.image_id }}';
           const pullRequestId = '${{ github.event.number }}';
           const repoOwner = '${{ github.repository_owner }}';
-          const repoName = '${{ github.repository_name }}';
-          const dockerPullLine = 'docker pull ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:latest';
+          const repoName = '${{ github.event.repository.name }}';
+          const dockerPullLine = 'docker pull ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:pr-${{ github.event.number }}';
           const comment = `:rocket: The container image has been built and pushed to GHCR with ID: \`${imageId}\`. You can pull it using the following command:\n\`${dockerPullLine}\``;
           const { data: commentData } = await github.issues.createComment({
             owner: repoOwner,
