@@ -3,12 +3,13 @@ package operator
 import (
 	"context"
 	"fmt"
+	"time"
+
 	v1 "github.com/b3scale/b3scale-operator/pkg/apis/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
-	"time"
 )
 
 type OperatorKubernetesClient struct {
