@@ -127,55 +127,42 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 
 	uniqName := fmt.Sprintf("b3o-%v-%v", bbbFrontend.ObjectMeta.Namespace, bbbFrontend.ObjectMeta.Name)
 
-	cM, configMapError := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.ObjectMeta.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
+	configMap, configMapError := op.Clientset().CoreV1().ConfigMaps(bbbFrontend.ObjectMeta.Namespace).Get(ctx, uniqName, metav1.GetOptions{})
 	if configMapError != nil && !kubernetesErrors.IsNotFound(configMapError) {
 		return configMapError
 	}
-
-	configMap := cM.DeepCopy()
 
 	if bbbFrontend.DeletionTimestamp != nil {
 		// Deletion
 
 		// Check, if we need to remove the finalizers.
-
-		var existingFrontend *store.FrontendState
-		// If the configMap is already deleted, everything is fine or we screwed something up.
-		if configMap != nil {
+		if len(configMap.Data) > 0 {
+			// If the configMap is already deleted, everything is fine or we screwed something up.
 			frontendId, ok := configMap.Data["FRONTEND_ID"]
 			if !ok {
-				level.Debug(o.logger).Log(
-					"msg", "Could not find FRONTEND_ID in ConfigMap",
-					"configMap", configMap,
-					"cM", cM,
-					"configMapError", configMapError,
-				)
 				return errors.New("Invalid configMap, FRONTEND_ID not found")
 			}
 
-			x, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
-			existingFrontend = x
+			existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, frontendId)
+			if err != nil {
+				return err
+			}
 
+			if existingFrontend != nil {
+				_, err := o.apiClient.FrontendDelete(ctx, existingFrontend)
+
+				if err != nil {
+					return err
+				}
+			}
+
+			err = operatorKubernetesClient.RemoveFinalizerFromConfigMap(ctx, configMap, FINALIZER_URL)
 			if err != nil {
 				return err
 			}
 		}
 
-		if existingFrontend != nil {
-			_, err := o.apiClient.FrontendDelete(ctx, existingFrontend)
-
-			if err != nil {
-				return err
-			}
-
-		}
-
-		err := operatorKubernetesClient.RemoveFinalizerFromConfigMap(ctx, configMap, FINALIZER_URL)
-		if err != nil {
-			return err
-		}
-
-		err = operatorKubernetesClient.RemoveFinalizerFromBBBFrontend(ctx, bbbFrontend, FINALIZER_URL)
+		err := operatorKubernetesClient.RemoveFinalizerFromBBBFrontend(ctx, bbbFrontend, FINALIZER_URL)
 		if err != nil {
 			return err
 		}
