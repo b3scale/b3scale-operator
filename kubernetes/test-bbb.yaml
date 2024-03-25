@@ -8,29 +8,29 @@ stringData:
 
 ---
 
-apiVersion: b3scale.infra.run/v1
+apiVersion: b3scale.io/v1
 kind: BBBFrontend
 metadata:
   name: frontend-provided-credentials
   namespace: b3scale-operator
 spec:
   credentials:
-    key: "das-ist-ein-key"
+    frontend: "das-ist-ein-frontend"
     secretRef:
       name: testeroni
       key: "FOO"
   settings:
-    required_tags:
+    requiredTags:
       - "bbb_24_mediasoup"
 
 ---
 
-apiVersion: b3scale.infra.run/v1
+apiVersion: b3scale.io/v1
 kind: BBBFrontend
 metadata:
   name: frontend-generate-credentials
   namespace: b3scale-operator
 spec:
   settings:
-    required_tags:
+    requiredTags:
       - "bbb_24_mediasoup"
