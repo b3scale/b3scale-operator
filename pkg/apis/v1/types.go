@@ -77,3 +77,37 @@ func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {
 
 	return s
 }
+
+// GetCleanedFrontendSettings does the same as ToAPIFrontendSettings but returns our b3scale-operator type which does
+// NOT use omitempty in its struct declaration
+func (f *FrontendSettings) GetCleanedFrontendSettings() FrontendSettings {
+	var defaultPresentation *DefaultPresentationSettings
+	if f.DefaultPresentation != nil {
+		defaultPresentation = &DefaultPresentationSettings{
+			URL:   f.DefaultPresentation.URL,
+			Force: f.DefaultPresentation.Force,
+		}
+	}
+
+	requiredTags := make([]string, 0)
+	if f.RequiredTags != nil {
+		requiredTags = f.RequiredTags
+	}
+
+	var createDefaultParams *bbb.Params
+	if f.CreateDefaultParams != nil && len(*f.CreateDefaultParams) > 0 {
+		createDefaultParams = f.CreateDefaultParams
+	}
+
+	var createOverrideParams *bbb.Params
+	if f.CreateOverrideParams != nil && len(*f.CreateOverrideParams) > 0 {
+		createOverrideParams = f.CreateOverrideParams
+	}
+
+	return FrontendSettings{
+		RequiredTags:         requiredTags,
+		DefaultPresentation:  defaultPresentation,
+		CreateDefaultParams:  createDefaultParams,
+		CreateOverrideParams: createOverrideParams,
+	}
+}
