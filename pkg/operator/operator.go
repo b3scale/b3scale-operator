@@ -179,8 +179,8 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 	} else {
 		// Update frontend in B3Scale backend
 		payload, err := json.Marshal(
-			map[string]v1.FrontendSettings{
-				"settings": bbbFrontend.Spec.Settings.GetCleanedFrontendSettings(),
+			map[string]store.FrontendSettings{
+				"settings": bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
 			},
 		)
 		if err != nil {
