@@ -4,7 +4,7 @@
 
 1. Deploy CRD
     + `kubectl apply -f kubernetes/crd.yaml`
-2. Configure Operator by modifing the Secret in `kubernetses/operator.yaml`
+2. Configure Operator by modifying the Secret in `kubernetses/operator.yaml`
 3. Deploy Operator
     + `kubectl apply -f kubernetes/operator.yaml`
 
@@ -29,9 +29,7 @@ spec:
        disabledFeatures: "chat,captions"
 ```
 
-This will create a frontend instance with the name `b3scale-operator-testeroni`.
-
-There is also the possibility to add a secret with credentials to the `BBBFrontend` resource. An full example is included in the `./kubernetes/test-bbb.yaml` file.
+This will create a frontend instance with the name `b3scale-operator-testeroni`. Add a secret with credentials to the `BBBFrontend` resource. An full example is included in the `./kubernetes/test-bbb.yaml` file.
 
 ```yaml
 apiVersion: b3scale.io/v1
