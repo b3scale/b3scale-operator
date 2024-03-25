@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"errors"
+	"k8s.io/apimachinery/pkg/util/json"
 
 	"fmt"
 	"os"
@@ -177,12 +178,16 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		}
 	} else {
 		// Update frontend in B3Scale backend
-		state := &store.FrontendState{
-			Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
-			ID:       *bbbFrontend.Spec.FrontendID,
+		payload, err := json.Marshal(
+			map[string]v1.FrontendSettings{
+				"settings": bbbFrontend.Spec.Settings,
+			},
+		)
+		if err != nil {
+			return err
 		}
 
-		_, err = o.apiClient.FrontendUpdate(ctx, state)
+		_, err = o.apiClient.FrontendUpdateRaw(ctx, *bbbFrontend.Spec.FrontendID, payload)
 		if err != nil {
 			return err
 		}
