@@ -26,7 +26,7 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontendStatus(ctx context.Context, 
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("/apis/b3scale.infra.run/v1/namespaces/%v/bbbfrontends/%v/status", bbb.Namespace, bbb.Name)
+	url := fmt.Sprintf("/apis/b3scale.io/v1/namespaces/%v/bbbfrontends/%v/status", bbb.Namespace, bbb.Name)
 	d := o.clientset.RESTClient().Put().AbsPath(url).Body(jsonBody).Do(ctx)
 
 	err = d.Error()
@@ -42,7 +42,7 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontend(ctx context.Context, bbb *v
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("/apis/b3scale.infra.run/v1/namespaces/%v/bbbfrontends/%v", bbb.Namespace, bbb.Name)
+	url := fmt.Sprintf("/apis/b3scale.io/v1/namespaces/%v/bbbfrontends/%v", bbb.Namespace, bbb.Name)
 	d := o.clientset.RESTClient().Put().AbsPath(url).Body(jsonBody).Do(ctx)
 	if d.Error() != nil {
 		return d.Error()
@@ -51,11 +51,13 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontend(ctx context.Context, bbb *v
 	return nil
 }
 
-func (o *OperatorKubernetesClient) AddFinalizerToBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
+func (o *OperatorKubernetesClient) CompleteBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string, id string, endpoint string) error {
 	var finalizers []string
 	copy(finalizers, bbb.Finalizers)
 	finalizers = append(finalizers, finalizer)
 	bbb.SetFinalizers(finalizers)
+	bbb.Spec.FrontendID = id
+	bbb.Spec.FrontendEndpoint = endpoint
 	return o.UpdateBBBFrontend(ctx, bbb)
 }
 

@@ -8,8 +8,8 @@ stringData:
 
 ---
 
-apiVersion: b3scale.infra.run/v1
-kind: BBBFrontend
+apiVersion: b3scale.io/v1
+kind: Frontend
 metadata:
   name: frontend-provided-credentials
   namespace: b3scale-operator
@@ -25,8 +25,8 @@ spec:
 
 ---
 
-apiVersion: b3scale.infra.run/v1
-kind: BBBFrontend
+apiVersion: b3scale.io/v1
+kind: Frontend
 metadata:
   name: frontend-generate-credentials
   namespace: b3scale-operator

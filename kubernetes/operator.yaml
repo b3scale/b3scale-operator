@@ -12,15 +12,12 @@ metadata:
   name: b3scale-operator
   namespace: b3scale-operator
 rules:
-  - apiGroups: [ "b3scale.infra.run" ]
+  - apiGroups: [ "b3scale.io" ]
     resources: [ "bbbfrontends", "bbbfrontends/status" ]
     verbs: [ "get", "watch", "list", "update" ]
   - apiGroups: [ "" ]
-    resources: [ "configmaps" ]
-    verbs: [ "get", "watch", "list", "update", "delete", "create" ]
-  - apiGroups: [ "" ]
     resources: [ "secrets" ]
-    verbs: [ "get", "watch", "list", "update", "delete", "create" ]
+    verbs: [ "get", "watch", "list" ]
 
 
 ---
