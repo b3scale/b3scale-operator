@@ -8,7 +8,6 @@ import (
 )
 
 func GetKubernetesConfig(config *config2.Kubernetes) (*rest.Config, error) {
-
 	if config.InCluster != nil {
 		return rest.InClusterConfig()
 	} else if config.OutOfCluster != nil {

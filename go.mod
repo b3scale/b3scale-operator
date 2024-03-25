@@ -6,7 +6,7 @@ toolchain go1.22.2
 replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
 
 require (
-	github.com/b3scale/b3scale v1.0.6
+	github.com/b3scale/b3scale v1.0.6-0.20240325174538-891f221fb196
 	github.com/go-kit/log v0.2.1
 	github.com/spf13/viper v1.18.2
 	github.com/thcyron/skop/v2 v2.1.0
