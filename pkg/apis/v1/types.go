@@ -41,8 +41,7 @@ type BBBFrontendSpecs struct {
 	Settings           FrontendSettings `json:"settings"`
 	Credentials        *Credentials     `json:"credentials"`
 	DeletionProtection bool             `json:"deletionProtection"`
-	FrontendID         string           `json:"frontendID"`
-	FrontendEndpoint   string           `json:"frontendEndpoint"`
+	FrontendID         *string          `json:"frontendID"`
 }
 
 func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {

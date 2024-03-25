@@ -12,7 +12,7 @@
 
 ```yaml
 apiVersion: b3scale.io/v1
-kind: Frontend
+kind: BBBFrontend
 metadata:
   name: frontend-full-settings
 spec:
@@ -35,7 +35,7 @@ There is also the possibility to add a secret with credentials to the `BBBFronte
 
 ```yaml
 apiVersion: b3scale.io/v1
-kind: Frontend
+kind: BBBFrontend
 metadata:
   name: frontend-provided-credentials
 spec:

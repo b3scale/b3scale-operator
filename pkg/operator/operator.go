@@ -120,16 +120,15 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 
 	// Deletion
 	if bbbFrontend.DeletionTimestamp != nil {
-		// Check, if we need to remove the finalizers.
-		if len(bbbFrontend.Spec.FrontendID) > 0 {
-			existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, bbbFrontend.Spec.FrontendID)
+		// Check if we need to remove the finalizers
+		if bbbFrontend.Spec.FrontendID != nil {
+			existingFrontend, err := o.apiClient.FrontendRetrieve(ctx, *bbbFrontend.Spec.FrontendID)
 			if err != nil {
 				return err
 			}
 
 			if existingFrontend != nil && !bbbFrontend.Spec.DeletionProtection {
 				_, err := o.apiClient.FrontendDelete(ctx, existingFrontend)
-
 				if err != nil {
 					return err
 				}
@@ -149,13 +148,17 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		return errors.New(fmt.Sprintf("BBBFrontend [%s/%s] has no credentials configured",
 			bbbFrontend.Namespace, bbbFrontend.Name))
 	}
+	if len(bbbFrontend.Spec.Credentials.Frontend) == 0 {
+		return errors.New(fmt.Sprintf("BBBFrontend [%s/%s] has no frontend configured",
+			bbbFrontend.Namespace, bbbFrontend.Name))
+	}
 	frontendSecret, err := extractFrontendSecret(ctx, op, bbbFrontend)
 	if err != nil {
 		return err
 	}
 
-	if len(bbbFrontend.Spec.FrontendID) == 0 {
-		// Create resource in B3Scale backend
+	if bbbFrontend.Spec.FrontendID == nil {
+		// Create frontend in B3Scale backend
 		createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
 			Active: true,
 			Frontend: &bbb.Frontend{
@@ -168,16 +171,15 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 			return err
 		}
 
-		err = operatorKubernetesClient.CompleteBBBFrontend(ctx, bbbFrontend, FINALIZER_URL, createdFrontend.ID,
-			fmt.Sprintf("https://%v/bbb/%v", o.config.B3Scale.Host, createdFrontend.Frontend.Key))
+		err = operatorKubernetesClient.CompleteBBBFrontend(ctx, bbbFrontend, FINALIZER_URL, createdFrontend.ID)
 		if err != nil {
 			return err
 		}
 	} else {
-		// Update frontend
+		// Update frontend in B3Scale backend
 		state := &store.FrontendState{
 			Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
-			ID:       bbbFrontend.Spec.FrontendID,
+			ID:       *bbbFrontend.Spec.FrontendID,
 		}
 
 		_, err = o.apiClient.FrontendUpdate(ctx, state)
