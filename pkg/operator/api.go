@@ -55,7 +55,7 @@ func (o *OperatorKubernetesClient) CompleteBBBFrontend(ctx context.Context, bbb 
 	copy(finalizers, bbb.Finalizers)
 	finalizers = append(finalizers, finalizer)
 	bbb.SetFinalizers(finalizers)
-	bbb.Spec.FrontendID = id
+	bbb.Spec.FrontendID = &id
 	return o.UpdateBBBFrontend(ctx, bbb)
 }
 
