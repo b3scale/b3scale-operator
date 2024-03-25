@@ -13,15 +13,14 @@ type DefaultPresentationSettings struct {
 }
 
 type FrontendSettings struct {
-	RequiredTags        []string                     `json:"required_tags"`
-	DefaultPresentation *DefaultPresentationSettings `json:"default_presentation"`
-
-	CreateDefaultParams  *bbb.Params `json:"create_default_params"`
-	CreateOverrideParams *bbb.Params `json:"create_override_params"`
+	RequiredTags         []string                     `json:"requiredTags"`
+	DefaultPresentation  *DefaultPresentationSettings `json:"defaultPresentation"`
+	CreateDefaultParams  *bbb.Params                  `json:"createDefaultParams"`
+	CreateOverrideParams *bbb.Params                  `json:"createOverrideParams"`
 }
 
 type Credentials struct {
-	Key       string               `json:"key"`
+	Frontend  string               `json:"frontend"`
 	SecretRef v1.SecretKeySelector `json:"secretRef"`
 }
 
@@ -38,12 +37,13 @@ type BBBFrontendStatus struct {
 }
 
 type BBBFrontendSpecs struct {
-	Settings    FrontendSettings `json:"settings"`
-	Credentials *Credentials     `json:"credentials"`
+	Settings           FrontendSettings `json:"settings"`
+	Credentials        *Credentials     `json:"credentials"`
+	DeletionProtection bool             `json:"deletionProtection"`
+	FrontendID         *string          `json:"frontendID"`
 }
 
 func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {
-
 	var defaultPresentation *store.DefaultPresentationSettings
 	if f.DefaultPresentation != nil {
 		defaultPresentation = &store.DefaultPresentationSettings{
@@ -68,9 +68,8 @@ func (f *FrontendSettings) ToAPIFrontendSettings() store.FrontendSettings {
 	}
 
 	s := store.FrontendSettings{
-		RequiredTags:        requiredTags,
-		DefaultPresentation: defaultPresentation,
-
+		RequiredTags:         requiredTags,
+		DefaultPresentation:  defaultPresentation,
 		CreateDefaultParams:  createDefaultParams,
 		CreateOverrideParams: createOverrideParams,
 	}

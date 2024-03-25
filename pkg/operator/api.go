@@ -6,7 +6,6 @@ import (
 	"time"
 
 	v1 "github.com/b3scale/b3scale-operator/pkg/apis/v1"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
@@ -26,7 +25,7 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontendStatus(ctx context.Context, 
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("/apis/b3scale.infra.run/v1/namespaces/%v/bbbfrontends/%v/status", bbb.Namespace, bbb.Name)
+	url := fmt.Sprintf("/apis/b3scale.io/v1/namespaces/%v/bbbfrontends/%v/status", bbb.Namespace, bbb.Name)
 	d := o.clientset.RESTClient().Put().AbsPath(url).Body(jsonBody).Do(ctx)
 
 	err = d.Error()
@@ -42,7 +41,7 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontend(ctx context.Context, bbb *v
 	if err != nil {
 		return err
 	}
-	url := fmt.Sprintf("/apis/b3scale.infra.run/v1/namespaces/%v/bbbfrontends/%v", bbb.Namespace, bbb.Name)
+	url := fmt.Sprintf("/apis/b3scale.io/v1/namespaces/%v/bbbfrontends/%v", bbb.Namespace, bbb.Name)
 	d := o.clientset.RESTClient().Put().AbsPath(url).Body(jsonBody).Do(ctx)
 	if d.Error() != nil {
 		return d.Error()
@@ -51,11 +50,12 @@ func (o *OperatorKubernetesClient) UpdateBBBFrontend(ctx context.Context, bbb *v
 	return nil
 }
 
-func (o *OperatorKubernetesClient) AddFinalizerToBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string) error {
+func (o *OperatorKubernetesClient) CompleteBBBFrontend(ctx context.Context, bbb *v1.BBBFrontend, finalizer string, id string) error {
 	var finalizers []string
 	copy(finalizers, bbb.Finalizers)
 	finalizers = append(finalizers, finalizer)
 	bbb.SetFinalizers(finalizers)
+	bbb.Spec.FrontendID = &id
 	return o.UpdateBBBFrontend(ctx, bbb)
 }
 
@@ -67,28 +67,11 @@ func (o *OperatorKubernetesClient) RemoveFinalizerFromBBBFrontend(ctx context.Co
 			finalizers = append(finalizers, f)
 		}
 	}
-
 	bbb.SetFinalizers(finalizers)
 	return o.UpdateBBBFrontend(ctx, bbb)
 }
 
-func (o *OperatorKubernetesClient) RemoveFinalizerFromConfigMap(ctx context.Context, configMap *corev1.ConfigMap, finalizer string) error {
-	// We want to remove our finalizer, but keep the other finalizers.
-	finalizers := []string{}
-	for _, f := range configMap.Finalizers {
-		if f != finalizer {
-			finalizers = append(finalizers, f)
-		}
-	}
-
-	configMap.SetFinalizers(finalizers)
-
-	_, err := o.clientset.CoreV1().ConfigMaps(configMap.Namespace).Update(ctx, configMap, metav1.UpdateOptions{})
-	return err
-}
-
 func (o *OperatorKubernetesClient) SetReadyStatusCondition(ctx context.Context, bbb *v1.BBBFrontend, isReady bool, err error) error {
-
 	var status metav1.ConditionStatus
 	var message string
 	var reason string

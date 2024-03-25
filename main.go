@@ -7,7 +7,6 @@ import (
 )
 
 func startUpOperator() error {
-
 	viper.SetConfigFile("b3scale-operator-config.yaml")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -32,7 +31,6 @@ func startUpOperator() error {
 }
 
 func main() {
-
 	err := startUpOperator()
 	if err != nil {
 		panic(err)
