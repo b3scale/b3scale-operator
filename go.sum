@@ -50,8 +50,8 @@ github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a/go.mod h1:DAHtR1m6l
 github.com/aws/aws-lambda-go v1.13.3/go.mod h1:4UKl9IzQMoD+QF79YdCuzCwp8VbmG4VAQwij/eHl5CU=
 github.com/aws/aws-sdk-go v1.27.0/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
-github.com/b3scale/b3scale v1.0.6-0.20240325174538-891f221fb196 h1:x1HGz9R+HMgkR0eZm3bkaWLiZuG+YoDKq9LHa+6aojI=
-github.com/b3scale/b3scale v1.0.6-0.20240325174538-891f221fb196/go.mod h1:C6Di6RLLL5mtF7/awwJyyICM0SraufjHGmHBxsQWjdU=
+github.com/b3scale/b3scale v1.0.6 h1:BeLi8O00NhWRfLx2gWktgVVOIE8x15w5efGAe+8mvb8=
+github.com/b3scale/b3scale v1.0.6/go.mod h1:3/Wpu49EpgR9ZYuPBMyHvkP01wBrSUaVVUS2EgzJybM=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
