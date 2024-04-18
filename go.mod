@@ -1,8 +1,7 @@
 module github.com/b3scale/b3scale-operator
 
 go 1.22
-
-toolchain go1.22.0
+toolchain go1.22.2
 
 replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
 
@@ -12,7 +11,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/thcyron/skop/v2 v2.1.0
 	k8s.io/api v0.29.3
-	k8s.io/apimachinery v0.29.4
+	k8s.io/apimachinery v0.30.0
 	k8s.io/client-go v0.29.3
 )
 
@@ -86,7 +85,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
-	k8s.io/kube-openapi v0.0.0-20240209001042-7a0d5b415232 // indirect
+	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/utils v0.0.0-20240102154912-e7106e64919e // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
