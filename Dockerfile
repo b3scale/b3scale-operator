@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o b3scale-operator
 
-FROM alpine:3.19 as certs
+FROM alpine:3.20 as certs
 
 RUN apk add ca-certificates && update-ca-certificates
 
