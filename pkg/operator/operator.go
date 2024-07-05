@@ -6,6 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/json"
 
 	"fmt"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -158,21 +159,30 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		return err
 	}
 
-	if bbbFrontend.Spec.FrontendID == nil {
-		// Create frontend in B3Scale backend
-		createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
-			Active: true,
-			Frontend: &bbb.Frontend{
-				Key:    bbbFrontend.Spec.Credentials.Frontend,
-				Secret: frontendSecret,
-			},
-			Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
-		})
-		if err != nil {
-			return err
+	if bbbFrontend.Spec.FrontendID == nil || *bbbFrontend.Spec.FrontendID == "" {
+		var id string
+
+		// Try reading ID from existing frontend
+		existingFrontend, err := getFrontendByName(ctx, *o.apiClient, bbbFrontend.Spec.Credentials.Frontend)
+		if err == nil {
+			id = existingFrontend.ID
+		} else {
+			// Create frontend in B3Scale backend
+			createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
+				Active: true,
+				Frontend: &bbb.Frontend{
+					Key:    bbbFrontend.Spec.Credentials.Frontend,
+					Secret: frontendSecret,
+				},
+				Settings: bbbFrontend.Spec.Settings.ToAPIFrontendSettings(),
+			})
+			if err != nil {
+				return err
+			}
+			id = createdFrontend.ID
 		}
 
-		err = operatorKubernetesClient.CompleteBBBFrontend(ctx, bbbFrontend, FINALIZER_URL, createdFrontend.ID)
+		err = operatorKubernetesClient.CompleteBBBFrontend(ctx, bbbFrontend, FINALIZER_URL, id)
 		if err != nil {
 			return err
 		}
@@ -217,4 +227,20 @@ func makeLogger() log.Logger {
 	logger = log.NewJSONLogger(log.NewSyncWriter(os.Stdout))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 	return logger
+}
+
+// Frontend retrieval helper
+func getFrontendByName(
+	ctx context.Context, c b3scaleclient.Client, key string,
+) (*store.FrontendState, error) {
+	frontends, err := c.FrontendsList(ctx, url.Values{
+		"key": []string{key},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(frontends) > 0 {
+		return frontends[0], nil
+	}
+	return nil, nil
 }
