@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"errors"
+
 	"k8s.io/apimachinery/pkg/util/json"
 
 	"fmt"
@@ -70,7 +71,7 @@ func (o *B3ScaleOperator) Run() error {
 		runErrCh <- o.op.Run()
 	}()
 
-	sigCh := make(chan os.Signal)
+	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	select {
@@ -147,12 +148,12 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 
 	// Validation
 	if bbbFrontend.Spec.Credentials == nil {
-		return errors.New(fmt.Sprintf("BBBFrontend [%s/%s] has no credentials configured",
-			bbbFrontend.Namespace, bbbFrontend.Name))
+		return fmt.Errorf("BBBFrontend [%s/%s] has no credentials configured",
+			bbbFrontend.Namespace, bbbFrontend.Name)
 	}
 	if len(bbbFrontend.Spec.Credentials.Frontend) == 0 {
-		return errors.New(fmt.Sprintf("BBBFrontend [%s/%s] has no frontend configured",
-			bbbFrontend.Namespace, bbbFrontend.Name))
+		return fmt.Errorf("BBBFrontend [%s/%s] has no frontend configured",
+			bbbFrontend.Namespace, bbbFrontend.Name)
 	}
 	frontendSecret, err := extractFrontendSecret(ctx, op, bbbFrontend)
 	if err != nil {
