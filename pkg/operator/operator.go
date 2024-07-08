@@ -161,6 +161,7 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 	}
 
 	if bbbFrontend.Spec.FrontendID == nil || *bbbFrontend.Spec.FrontendID == "" {
+		level.Debug(o.logger).Log("msg", "frontend UUID not found, trying to read it from b3scale")
 		var id string
 
 		// Try reading ID from existing frontend
@@ -168,6 +169,7 @@ func (o *B3ScaleOperator) innerReconcile(ctx context.Context, op *skop.Operator,
 		if err == nil {
 			id = existingFrontend.ID
 		} else {
+			level.Debug(o.logger).Log("msg", "frontend does not exist, creating")
 			// Create frontend in B3Scale backend
 			createdFrontend, err := o.apiClient.FrontendCreate(ctx, &store.FrontendState{
 				Active: true,
@@ -243,5 +245,5 @@ func getFrontendByName(
 	if len(frontends) > 0 {
 		return frontends[0], nil
 	}
-	return nil, nil
+	return nil, fmt.Errorf("cloud not find BBBFrontend with name %s", key)
 }
