@@ -245,5 +245,5 @@ func getFrontendByName(
 	if len(frontends) > 0 {
 		return frontends[0], nil
 	}
-	return nil, fmt.Errorf("cloud not find BBBFrontend with name %s", key)
+	return nil, fmt.Errorf("could not find BBBFrontend with name %s", key)
 }
