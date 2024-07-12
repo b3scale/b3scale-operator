@@ -7,7 +7,7 @@ toolchain go1.22.2
 replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
 
 require (
-	github.com/b3scale/b3scale v1.1.0
+	github.com/b3scale/b3scale v1.1.1
 	github.com/go-kit/log v0.2.1
 	github.com/spf13/viper v1.19.0
 	github.com/thcyron/skop/v2 v2.1.0
@@ -73,12 +73,12 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a // indirect
-	golang.org/x/net v0.26.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
-	golang.org/x/term v0.21.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
