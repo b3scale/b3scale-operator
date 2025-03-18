@@ -1,6 +1,7 @@
 module github.com/b3scale/b3scale-operator
 
-go 1.22.0
+go 1.23.0
+
 toolchain go1.24.1
 
 replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
