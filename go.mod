@@ -9,7 +9,7 @@ replace github.com/imdario/mergo => dario.cat/mergo v0.3.16
 require (
 	github.com/b3scale/b3scale v1.2.0
 	github.com/go-kit/log v0.2.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/thcyron/skop/v2 v2.1.0
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
