@@ -14,7 +14,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o b3scale-operator
 
-FROM alpine:3.21 AS certs
+FROM alpine:3.22 AS certs
 
 RUN apk add ca-certificates && update-ca-certificates
 
