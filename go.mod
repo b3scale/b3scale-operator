@@ -11,9 +11,9 @@ require (
 	github.com/go-kit/log v0.2.1
 	github.com/spf13/viper v1.21.0
 	github.com/thcyron/skop/v2 v2.1.0
-	k8s.io/api v0.34.2
-	k8s.io/apimachinery v0.34.2
-	k8s.io/client-go v0.34.2
+	k8s.io/api v0.34.3
+	k8s.io/apimachinery v0.34.3
+	k8s.io/client-go v0.34.3
 )
 
 require (
