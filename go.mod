@@ -11,7 +11,7 @@ require (
 	github.com/thcyron/skop/v2 v2.1.0
 	k8s.io/api v0.35.2
 	k8s.io/apimachinery v0.35.2
-	k8s.io/client-go v0.35.1
+	k8s.io/client-go v0.35.2
 )
 
 require (
