@@ -1,0 +1,50 @@
+name: Automated Release
+
+on:
+  schedule:
+    - cron: "35 5 * * WED"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: automated-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create release when commits are available
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_tag="$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')"
+          if [[ -n "${latest_tag}" ]]; then
+            commit_count="$(git rev-list --count "${latest_tag}..HEAD")"
+            version="${latest_tag#v}"
+            IFS=. read -r major minor patch <<< "${version}"
+            next_tag="v${major}.${minor}.$((patch + 1))"
+          else
+            commit_count="$(git rev-list --count HEAD)"
+            next_tag="v0.1.0"
+          fi
+
+          if [[ "${commit_count}" -eq 0 ]]; then
+            echo "No commits since ${latest_tag:-the beginning of the repository}; nothing to release."
+            exit 0
+          fi
+
+          gh release create "${next_tag}" \
+            --title "${next_tag}" \
+            --generate-notes
